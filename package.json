@@ -1,0 +1,28 @@
+{
+  "name": "primevista",
+  "private": true,
+  "packageManager": "npm@10.8.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:web": "turbo run dev --filter=web",
+    "dev:admin": "turbo run dev --filter=admin",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "seed:admin": "npm run seed:admin --workspace=web",
+    "seed:services": "npm run seed:services --workspace=web"
+  },
+  "devDependencies": {
+    "turbo": "^2.1.3"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "overrides": {
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  }
+}
