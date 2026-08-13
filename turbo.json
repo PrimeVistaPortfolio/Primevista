@@ -7,7 +7,23 @@
     },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**"]
+      "outputs": [".next/**", "!.next/cache/**"],
+      "env": [
+        "MONGODB_URI",
+        "JWT_SECRET",
+        "CLOUDINARY_CLOUD_NAME",
+        "CLOUDINARY_API_KEY",
+        "CLOUDINARY_API_SECRET",
+        "NEXT_PUBLIC_SITE_URL",
+        "SMTP_HOST",
+        "SMTP_PORT",
+        "SMTP_SECURE",
+        "SMTP_USER",
+        "SMTP_PASS",
+        "EMAIL_FROM",
+        "ADMIN_NOTIFICATION_EMAIL",
+        "WEB_API_URL"
+      ]
     },
     "lint": {
       "dependsOn": ["^lint"]
