@@ -63,6 +63,14 @@ Development**. Copy the values from your local `apps/web/.env.local`.
 
 > `SEED_ADMIN_*` are **not** needed on Vercel — the seed script runs from your machine.
 
+> **Adding a new variable later?** Setting it in the Vercel dashboard is only half the job.
+> Turborepo 2 runs tasks in **strict env mode**, so `turbo run build` passes a task only the
+> variables named in `turbo.json`. Any new build-time variable must also be added to the
+> `build` task's `env` array in [`turbo.json`](./turbo.json), or `next build` will see it as
+> `undefined` — which surfaces as a confusing "X is not set in the environment" failure during
+> "Collecting page data". Listing it there also makes it part of the build cache key, so a
+> changed value correctly invalidates the cache instead of replaying a stale build.
+
 **Generate a real `JWT_SECRET`** (the repo default is the literal placeholder
 `replace-with-a-long-random-string`, which must never reach production):
 
