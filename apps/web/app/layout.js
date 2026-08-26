@@ -46,11 +46,11 @@ export default async function RootLayout({ children }) {
         />
         {/* Sits behind the content layer; opaque .theme-light bands cover it,
             which keeps the effect to the dark sections only. */}
-        <div className="aurora" aria-hidden="true">
+        {/* <div className="aurora" aria-hidden="true">
           <span />
           <span />
           <span />
-        </div>
+        </div> */}
 
         <div className="grain-overlay animate-grain" aria-hidden="true" />
         <CustomCursor />

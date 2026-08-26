@@ -27,7 +27,7 @@ export default function ServicesGrid({ services, index = 1 }) {
             <Link
               href={`/services/${service.slug}`}
               data-cursor="hover"
-              className="group flex h-full flex-col rounded-3xl border border-rule bg-surface/40 p-8 transition-all duration-500 hover:-translate-y-1 hover:border-rule-strong hover:bg-surface"
+              className="group flex h-full flex-col rounded-3xl border border-rule bg-surface/40 p-8 transition-all duration-500 hover:-translate-y-1 hover:border-accent hover:bg-surface"
             >
               <div className="flex items-start justify-between">
                 <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-rule text-accent transition-colors duration-500 group-hover:border-accent">

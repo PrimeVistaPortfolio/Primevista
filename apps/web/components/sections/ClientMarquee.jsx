@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
   motion,
@@ -19,14 +19,18 @@ import { useReducedMotion } from "@/hooks/useReducedMotion";
  * velocity** — scroll faster and the logos rush past; scroll upward and the
  * strip reverses direction.
  *
- * The track holds two identical copies and `wrap(-50, 0, x)` loops the
- * translation between them, so the belt is seamless in both directions.
+ * The track holds N identical copies and `wrap(-100 / N, 0, x)` loops the
+ * translation by exactly one copy, so the belt is seamless in both directions.
  */
-function LogoRow({ clients, ariaHidden }) {
+function LogoRow({ clients, ariaHidden, copy = "a", innerRef }) {
   return (
-    <div className="flex shrink-0 items-center" aria-hidden={ariaHidden || undefined}>
+    <div
+      ref={innerRef}
+      className="flex shrink-0 items-center"
+      aria-hidden={ariaHidden || undefined}
+    >
       {clients.map((client) => (
-        <div key={`${client._id}-${ariaHidden ? "b" : "a"}`} className="flex items-center">
+        <div key={`${client._id}-${copy}`} className="flex items-center">
           <div className="flex h-12 w-[clamp(7rem,12vw,11rem)] items-center justify-center px-4">
             {client.logo?.url ? (
               <Image
@@ -37,7 +41,7 @@ function LogoRow({ clients, ariaHidden }) {
                 className="h-full w-auto max-w-full object-contain opacity-60 grayscale transition duration-500 hover:opacity-100 hover:grayscale-0"
               />
             ) : (
-              <span className="whitespace-nowrap text-lg text-ink">{client.name}</span>
+              <span className="whitespace-nowrap text-lg text-gray-500 font-semibold">{client.name}</span>
             )}
           </div>
           <span className="select-none text-accent" aria-hidden="true">
@@ -49,12 +53,42 @@ function LogoRow({ clients, ariaHidden }) {
   );
 }
 
-// baseVelocity is the idle drift in % of one row per second — scroll velocity
-// multiplies it on top (see the frame loop below).
-export default function ClientMarquee({ clients, title = "Trusted by", baseVelocity = 4 }) {
+// baseVelocity is the idle drift in % of *one copy* per second — scroll
+// velocity multiplies it on top (see the frame loop below).
+export default function ClientMarquee({ clients, title = "Trusted by", baseVelocity = 8 }) {
   const baseX = useMotionValue(0);
   const directionFactor = useRef(1);
   const reducedMotion = useReducedMotion();
+
+  // One copy of the row is usually narrower than the viewport, so two copies
+  // aren't enough: the belt runs out of logos before it can wrap and a gap
+  // opens after the last one. Measure the row and repeat it enough times to
+  // cover the viewport twice over.
+  const rowRef = useRef(null);
+  const [repeats, setRepeats] = useState(2);
+
+  useEffect(() => {
+    const row = rowRef.current;
+    if (!row) return;
+
+    const measure = () => {
+      const rowWidth = row.offsetWidth;
+      if (!rowWidth) return;
+      // +1 so a full copy is always queued up off-screen behind the wrap point.
+      const needed = Math.ceil(window.innerWidth / rowWidth) + 1;
+      setRepeats(Math.max(2, needed));
+    };
+
+    measure();
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(row);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [clients]);
 
   const { scrollY } = useScroll();
   const scrollVelocity = useVelocity(scrollY);
@@ -62,7 +96,10 @@ export default function ClientMarquee({ clients, title = "Trusted by", baseVeloc
   // clamp:false lets fast scrolling push well past the mapped range.
   const velocityFactor = useTransform(smoothVelocity, [0, 1200], [0, 6], { clamp: false });
 
-  const x = useTransform(baseX, (v) => `${wrap(-50, 0, v)}%`);
+  // The track is `repeats` copies wide, so one copy is 100 / repeats percent
+  // of it — that's both the wrap distance and the unit the drift moves in.
+  const copySpan = 100 / repeats;
+  const x = useTransform(baseX, (v) => `${wrap(-copySpan, 0, v)}%`);
 
   useAnimationFrame((_, delta) => {
     if (reducedMotion) return;
@@ -70,7 +107,8 @@ export default function ClientMarquee({ clients, title = "Trusted by", baseVeloc
     // A tab regaining focus can hand us a very large delta; cap it so the belt
     // doesn't lurch across several copies in one frame.
     const step = Math.min(delta, 50) / 1000;
-    let moveBy = directionFactor.current * baseVelocity * step;
+    // baseVelocity is copies-per-second, so scale it into track percent.
+    let moveBy = (directionFactor.current * baseVelocity * copySpan * step) / 100;
 
     const factor = velocityFactor.get();
 
@@ -96,12 +134,19 @@ export default function ClientMarquee({ clients, title = "Trusted by", baseVeloc
       </div>
 
       {/* w-max is load-bearing: a block-level flex container is 100% of its
-          parent, so -50% would translate half the *section* rather than one
-          copy of the row, and the loop would drift until the belt left the
-          screen. Sizing to content makes -50% exactly one copy. */}
+          parent, so the wrap offset would be measured against the *section*
+          rather than the track, and the loop would drift until the belt left
+          the screen. Sizing to content makes 100 / repeats exactly one copy. */}
       <motion.div className="flex w-max whitespace-nowrap" style={reducedMotion ? undefined : { x }}>
-        <LogoRow clients={clients} />
-        <LogoRow clients={clients} ariaHidden />
+        {Array.from({ length: repeats }, (_, i) => (
+          <LogoRow
+            key={i}
+            clients={clients}
+            copy={i}
+            ariaHidden={i > 0}
+            innerRef={i === 0 ? rowRef : undefined}
+          />
+        ))}
       </motion.div>
     </section>
   );

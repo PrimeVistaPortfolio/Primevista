@@ -152,11 +152,11 @@ export default function Navbar({ settings, categories = [] }) {
           ref={navRef}
           className="mx-auto flex max-w-container items-center justify-between border-b border-rule px-6 py-5"
         >
-          <Link href="/" className="flex items-center gap-3 text-ink" data-cursor="hover">
+          <Link href="/" className="flex items-center gap-3 text-ink " data-cursor="hover">
             {logo ? (
-              <Image src={logo} alt={settings?.siteName || "Home"} width={32} height={32} className="h-8 w-8 object-contain" />
+              <Image src={logo} alt={settings?.siteName || "Home"} width={32} height={32} className="w-28 object-contain" />
             ) : (
-              <span className="display text-xl tracking-tight">{settings?.siteName || "PrimeVista"}</span>
+              <span className="display text-xl tracking-tight">{settings?.siteName || "OMIXINFOSOFT"}</span>
             )}
           </Link>
 
