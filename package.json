@@ -7,10 +7,10 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "node init && turbo run dev",
-    "dev:web": "node init && turbo run dev --filter=web",
-    "dev:admin": "node init && turbo run dev --filter=admin",
-    "build": "node init && turbo run build",
+    "dev": "turbo run dev",
+    "dev:web": "turbo run dev --filter=web",
+    "dev:admin": "turbo run dev --filter=admin",
+    "build": "turbo run build",
     "lint": "turbo run lint",
     "seed:admin": "npm run seed:admin --workspace=web",
     "seed:services": "npm run seed:services --workspace=web"
